@@ -6,6 +6,9 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 JWT_SECRET = "king-posting-dev-secret-2026"
 
+[triggers]
+crons = ["0 2 * * *"]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "king-posting"

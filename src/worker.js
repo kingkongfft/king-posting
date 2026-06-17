@@ -399,4 +399,25 @@ app.get('/posts', async (c) => {
 </html>`);
 });
 
-export default app;
+// Scheduled cleanup: soft-delete posts older than 1 month
+async function cleanupOldPosts(env) {
+  const result = await env.DB.prepare(`
+    UPDATE posts 
+    SET deleted_at = datetime('now') 
+    WHERE deleted_at IS NULL 
+    AND created_at < datetime('now', '-1 month')
+  `).run();
+
+  console.log(`Cleanup: ${result.meta.changes} old posts soft-deleted`);
+  return result.meta.changes;
+}
+
+export default {
+  async fetch(request, env, ctx) {
+    return app.fetch(request, env, ctx);
+  },
+
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(cleanupOldPosts(env));
+  }
+};
