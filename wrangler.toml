@@ -1,0 +1,9 @@
+name = "king-posting"
+main = "src/worker.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "king-posting"
+database_id = "245b980a-54b0-4eb1-8f25-295b53d88dc2"
