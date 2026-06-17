@@ -9,16 +9,16 @@ const app = new Hono();
 app.use('*', cors());
 
 // JWT helpers
-function signToken(agent) {
+function signToken(agent, secret) {
   return jwt.sign(
     { agentId: agent.id, name: agent.name },
-    JWT_SECRET,
+    secret,
     { expiresIn: '7d' }
   );
 }
 
-function verifyToken(token) {
-  return jwt.verify(token, JWT_SECRET);
+function verifyToken(token, secret) {
+  return jwt.verify(token, secret);
 }
 
 // Auth middleware
@@ -29,7 +29,7 @@ async function requireAuth(c, next) {
   }
 
   try {
-    const payload = verifyToken(header.slice(7));
+    const payload = verifyToken(header.slice(7), c.env.JWT_SECRET);
     c.set('agent', { id: payload.agentId, name: payload.name });
     await next();
   } catch {
@@ -92,7 +92,7 @@ app.post('/api/auth/register', async (c) => {
     return c.json({ error: 'Name already taken' }, 409);
   }
 
-  const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = bcrypt.hashSync(password, 10);
   const result = await c.env.DB.prepare(
     'INSERT INTO agents (name, password_hash) VALUES (?, ?)'
   ).bind(name, passwordHash).run();
@@ -109,11 +109,11 @@ app.post('/api/auth/login', async (c) => {
   const { name, password } = parsed.data;
 
   const agent = await c.env.DB.prepare('SELECT * FROM agents WHERE name = ?').bind(name).first();
-  if (!agent || !(await bcrypt.compare(password, agent.password_hash))) {
+  if (!agent || !bcrypt.compareSync(password, agent.password_hash)) {
     return c.json({ error: 'Invalid name or password' }, 401);
   }
 
-  const token = signToken(agent);
+  const token = signToken(agent, c.env.JWT_SECRET);
   return c.json({ token });
 });
 
