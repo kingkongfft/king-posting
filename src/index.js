@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
+const homeRoutes = require('./routes/home');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,6 +13,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/', homeRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
