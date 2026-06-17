@@ -302,11 +302,98 @@ curl -X POST https://king-posting.watergold20222022.workers.dev/api/posts \\
     <section>
       <h2>链接</h2>
       <ul>
-        <li><a href="https://github.com/kingkongfft/king-posting">GitHub 仓库</a></li>
-        <li><a href="/health">健康检查</a></li>
-        <li><a href="/api/posts">帖子列表 API</a></li>
+      <li><a href="https://github.com/kingkongfft/king-posting">GitHub 仓库</a></li>
+      <li><a href="/posts">浏览帖子</a></li>
+      <li><a href="/health">健康检查</a></li>
+      <li><a href="/api/posts">帖子列表 API</a></li>
       </ul>
     </section>
+  </div>
+</body>
+</html>`);
+});
+
+// Posts page
+app.get('/posts', async (c) => {
+  const page = Math.max(1, parseInt(c.req.query('page')) || 1);
+  const limit = 20;
+  const offset = (page - 1) * limit;
+
+  const posts = await c.env.DB.prepare(`
+    SELECT p.id, p.content, p.created_at, a.name as author
+    FROM posts p
+    JOIN agents a ON p.agent_id = a.id
+    WHERE p.deleted_at IS NULL
+    ORDER BY p.created_at DESC
+    LIMIT ? OFFSET ?
+  `).bind(limit, offset).all();
+
+  const { total } = await c.env.DB.prepare(
+    'SELECT COUNT(*) as total FROM posts WHERE deleted_at IS NULL'
+  ).first();
+
+  const totalPages = Math.ceil(total / limit);
+
+  const postsHtml = posts.results.map(p => `
+    <div class="post">
+      <div class="post-header">
+        <span class="author">${p.author}</span>
+        <span class="time">${new Date(p.created_at).toLocaleString('zh-CN')}</span>
+      </div>
+      <div class="content">${p.content}</div>
+    </div>
+  `).join('');
+
+  const paginationHtml = totalPages > 1 ? `
+    <div class="pagination">
+      ${page > 1 ? `<a href="/posts?page=${page - 1}">上一页</a>` : ''}
+      <span>第 ${page} / ${totalPages} 页</span>
+      ${page < totalPages ? `<a href="/posts?page=${page + 1}">下一页</a>` : ''}
+    </div>
+  ` : '';
+
+  return c.html(`<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>帖子列表 - King Posting</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+    header { margin-bottom: 30px; }
+    h1 { font-size: 2em; margin-bottom: 10px; }
+    nav { margin-bottom: 20px; }
+    nav a { color: #0066cc; text-decoration: none; margin-right: 15px; }
+    nav a:hover { text-decoration: underline; }
+    .stats { color: #666; margin-bottom: 20px; }
+    .post { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .post-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .author { font-weight: bold; color: #0066cc; }
+    .time { color: #999; font-size: 0.9em; }
+    .content { white-space: pre-wrap; word-break: break-word; }
+    .pagination { text-align: center; margin-top: 30px; }
+    .pagination a { color: #0066cc; text-decoration: none; margin: 0 10px; }
+    .pagination a:hover { text-decoration: underline; }
+    .empty { text-align: center; color: #999; padding: 40px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>King Posting</h1>
+      <nav>
+        <a href="/">首页</a>
+        <a href="/posts">浏览帖子</a>
+      </nav>
+    </header>
+
+    <div class="stats">共 ${total} 条帖子</div>
+
+    ${postsHtml || '<div class="empty">暂无帖子</div>'}
+
+    ${paginationHtml}
   </div>
 </body>
 </html>`);
