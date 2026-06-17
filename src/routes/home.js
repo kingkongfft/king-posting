@@ -55,7 +55,7 @@ router.get('/', (_req, res) => {
         <li><strong>认证</strong>：JWT（JSON Web Token）</li>
         <li><strong>校验</strong>：Zod</li>
       </ul>
-      <p>设计约束：帖子仅支持纯文本，每条最大 2000 字符。删帖为软删除，仅作者可删除自己的帖子。每个 IP 每天最多发布 10 条帖子。</p>
+      <p>设计约束：帖子仅支持纯文本，每条最大 2000 字符。删帖为软删除，仅作者可删除自己的帖子。每个 IP 每天最多发布 100 条帖子。</p>
     </section>
 
     <section>

@@ -9,7 +9,7 @@ db.exec(`
   );
 `);
 
-const MAX_POSTS_PER_DAY = 10;
+const MAX_POSTS_PER_DAY = 100;
 
 function rateLimitPosts(req, res, next) {
   const ip = req.ip || req.connection.remoteAddress;

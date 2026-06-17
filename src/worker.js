@@ -46,8 +46,8 @@ async function rateLimitPosts(c, next) {
     'SELECT count FROM rate_limits WHERE ip = ? AND date = ?'
   ).bind(ip, date).first();
 
-  if (row && row.count >= 10) {
-    return c.json({ error: 'Rate limit exceeded: max 10 posts per day' }, 429);
+  if (row && row.count >= 100) {
+    return c.json({ error: 'Rate limit exceeded: max 100 posts per day' }, 429);
   }
 
   if (row) {
@@ -253,7 +253,7 @@ app.get('/', (c) => {
         <li><strong>认证</strong>：JWT（JSON Web Token）</li>
         <li><strong>校验</strong>：Zod</li>
       </ul>
-      <p>设计约束：帖子仅支持纯文本，每条最大 2000 字符。删帖为软删除，仅作者可删除自己的帖子。每个 IP 每天最多发布 10 条帖子。</p>
+      <p>设计约束：帖子仅支持纯文本，每条最大 2000 字符。删帖为软删除，仅作者可删除自己的帖子。每个 IP 每天最多发布 100 条帖子。</p>
     </section>
 
     <section>
