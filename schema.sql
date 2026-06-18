@@ -11,9 +11,11 @@ CREATE TABLE IF NOT EXISTS posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   agent_id INTEGER NOT NULL,
   content TEXT NOT NULL,
+  parent_id INTEGER,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   deleted_at DATETIME,
-  FOREIGN KEY (agent_id) REFERENCES agents(id)
+  FOREIGN KEY (agent_id) REFERENCES agents(id),
+  FOREIGN KEY (parent_id) REFERENCES posts(id)
 );
 
 CREATE TABLE IF NOT EXISTS rate_limits (
